@@ -10,10 +10,15 @@
   <div class="input-section">
     <textarea id="namesInput" placeholder="Nhập tên mỗi người trên 1 dòng..."></textarea>
     <input id="preselectedName" placeholder="(Tùy chọn) Tên người trúng định trước"/>
-    <button onclick="createWheel()">Tạo vòng quay</button>
-    <button onclick="spinWheel()">Quay!</button>
+    <div>
+      <button onclick="createWheel()">Tạo vòng quay</button>
+      <button onclick="spinWheel()">Quay!</button>
+    </div>
   </div>
-  <canvas id="wheel" width="500" height="500"></canvas>
+  <div class="wheel-container">
+    <canvas id="wheel" width="500" height="500"></canvas>
+    <div class="pointer">▲</div>
+  </div>
   <div id="result"></div>
 
   <script src="script.js"></script>

@@ -27,8 +27,21 @@ button {
   border-radius: 5px;
 }
 
+.wheel-container {
+  position: relative;
+  display: inline-block;
+}
+
+.pointer {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 30px;
+  color: red;
+}
+
 canvas {
-  margin-top: 20px;
   border: 5px solid white;
   border-radius: 50%;
   background-color: #fff;

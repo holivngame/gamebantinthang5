@@ -1,121 +1,106 @@
-// 🛠️ Tên người trúng "được chỉ định"
-const FIXED_WINNER = "Nguyễn Văn A";
-
-let players = [];
+let names = [];
 let angles = [];
+let colors = [];
+let canvas = document.getElementById("wheel");
+let ctx = canvas.getContext("2d");
 let startAngle = 0;
-let arc = 0;
-let spinning = false;
-let ctx;
+let spinTimeout = null;
+let spinAngle = 0;
+let isSpinning = false;
+let preselectedWinner = "";
 
-function drawWheel() {
-  const input = document.getElementById("playerInput").value.trim();
-  const canvas = document.getElementById("wheel");
-  ctx = canvas.getContext("2d");
-
-  players = input.split("\n").map(p => p.trim()).filter(p => p !== "");
-  if (players.length < 2) {
+function createWheel() {
+  const rawNames = document.getElementById("namesInput").value.trim().split("\n").filter(n => n);
+  preselectedWinner = document.getElementById("preselectedName").value.trim();
+  if (rawNames.length < 2) {
     alert("Cần ít nhất 2 người chơi!");
     return;
   }
 
-  arc = 2 * Math.PI / players.length;
-  angles = players.map((_, i) => i * arc);
+  names = rawNames;
+  colors = generateColors(names.length);
+  angles = names.map((_, i) => (2 * Math.PI * i) / names.length);
+  drawWheel();
+  document.getElementById("result").textContent = "";
+}
 
-  // Vẽ lại vòng quay
+function generateColors(count) {
+  const colors = [];
+  const hueStep = 360 / count;
+  for (let i = 0; i < count; i++) {
+    const hue = i * hueStep;
+    colors.push(`hsl(${hue}, 70%, 60%)`);
+  }
+  return colors;
+}
+
+function drawWheel() {
+  const arc = 2 * Math.PI / names.length;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  players.forEach((name, i) => {
+  for (let i = 0; i < names.length; i++) {
     const angle = startAngle + i * arc;
-
-    // Màu ngẫu nhiên
-    ctx.fillStyle = `hsl(${i * 360 / players.length}, 70%, 60%)`;
-
+    ctx.fillStyle = colors[i];
     ctx.beginPath();
     ctx.moveTo(250, 250);
-    ctx.arc(250, 250, 240, angle, angle + arc);
-    ctx.lineTo(250, 250);
+    ctx.arc(250, 250, 250, angle, angle + arc);
+    ctx.closePath();
     ctx.fill();
 
-    // Vẽ tên
+    // Text
     ctx.save();
     ctx.translate(250, 250);
     ctx.rotate(angle + arc / 2);
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = "black";
     ctx.font = "16px sans-serif";
-    ctx.fillText(name, 230, 10);
+    ctx.fillText(names[i], 120, 10);
     ctx.restore();
-  });
-
-  drawPointer();
-}
-
-function drawPointer() {
-  const canvas = document.getElementById("wheel");
-  ctx = canvas.getContext("2d");
-
-  ctx.fillStyle = "#e74c3c";
-  ctx.beginPath();
-  ctx.moveTo(250, 10);
-  ctx.lineTo(240, 30);
-  ctx.lineTo(260, 30);
-  ctx.closePath();
-  ctx.fill();
+  }
 }
 
 function spinWheel() {
-  if (spinning || players.length < 2) return;
+  if (isSpinning || names.length < 2) return;
 
-  const canvas = document.getElementById("wheel");
-  spinning = true;
+  isSpinning = true;
+  let winnerIndex = -1;
 
-  // Xác định index người trúng
-  let targetIndex;
-  if (players.includes(FIXED_WINNER)) {
-    targetIndex = players.indexOf(FIXED_WINNER);
-  } else {
-    targetIndex = Math.floor(Math.random() * players.length);
-  }
-
-  const targetAngle = 2 * Math.PI - (targetIndex * arc + arc / 2);
-  const extraSpins = 5; // số vòng quay thêm
-  const totalRotation = extraSpins * 2 * Math.PI + targetAngle;
-
-  let rotation = 0;
-  let speed = 0.1;
-
-  function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    startAngle += speed;
-    drawWheel();
-    drawPointer();
-
-    rotation += speed;
-    if (rotation >= totalRotation) {
-      spinning = false;
-      const winner = players[targetIndex];
-      document.getElementById("result").textContent = `🎉 Người chiến thắng: ${winner}`;
+  if (preselectedWinner) {
+    winnerIndex = names.indexOf(preselectedWinner);
+    if (winnerIndex === -1) {
+      alert("Tên được chỉ định không có trong danh sách!");
+      isSpinning = false;
       return;
     }
-
-    // Giảm tốc dần
-    if (rotation > totalRotation - 2 * Math.PI) {
-      speed *= 0.98;
-    }
-
-    requestAnimationFrame(animate);
+  } else {
+    winnerIndex = Math.floor(Math.random() * names.length);
   }
 
-  animate();
+  const arc = 2 * Math.PI / names.length;
+  const stopAngle = (3 * Math.PI / 2) - (winnerIndex * arc + arc / 2); // Top center
+  const spinRevolutions = 5 * 2 * Math.PI;
+  const finalAngle = spinRevolutions + stopAngle;
+
+  animateSpin(finalAngle, winnerIndex);
 }
 
-function reset() {
-  document.getElementById("playerInput").value = "";
-  document.getElementById("result").textContent = "";
-  const canvas = document.getElementById("wheel");
-  ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  spinning = false;
-  players = [];
+function animateSpin(targetAngle, winnerIndex) {
+  const duration = 5000; // 5 seconds
+  const start = performance.now();
+
+  function step(timestamp) {
+    const elapsed = timestamp - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const easeOut = 1 - Math.pow(1 - progress, 4); // Easing
+    startAngle = easeOut * targetAngle;
+
+    drawWheel();
+
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    } else {
+      isSpinning = false;
+      document.getElementById("result").textContent = `🎉 Người trúng là: ${names[winnerIndex]} 🎉`;
+    }
+  }
+
+  requestAnimationFrame(step);
 }

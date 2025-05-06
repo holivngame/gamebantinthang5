@@ -2,19 +2,22 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Quay Số May Mắn</title>
+  <title>Vòng Quay May Mắn</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>Quay Số May Mắn</h1>
-
-    <textarea id="playerInput" placeholder="Nhập tên người chơi, mỗi dòng 1 người"></textarea>
+    <h1>🎡 Vòng Quay May Mắn</h1>
     
+    <textarea id="playerInput" placeholder="Nhập tên người chơi, mỗi dòng 1 người..."></textarea>
+
     <div class="controls">
-      <button onclick="startDraw()">Quay Số</button>
+      <button onclick="drawWheel()">Vẽ Vòng Quay</button>
+      <button onclick="spinWheel()">Quay!</button>
       <button onclick="reset()">Reset</button>
     </div>
+
+    <canvas id="wheel" width="500" height="500"></canvas>
 
     <div class="result" id="result"></div>
   </div>

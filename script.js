@@ -1,5 +1,5 @@
 // 🛠️ Cấu hình người trúng "được chỉ định"
-const FIXED_WINNER = "Nguyễn Văn A"; // ← Đổi tên tại đây nếu cần
+const FIXED_WINNER = "Đinh Văn Sơn"; // ← Đổi tên tại đây nếu cần
 
 function startDraw() {
   const input = document.getElementById("playerInput").value.trim();

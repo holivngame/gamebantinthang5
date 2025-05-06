@@ -2,25 +2,19 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Vòng Quay May Mắn</title>
+  <title>Vòng quay may mắn</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h1>🎡 Vòng Quay May Mắn</h1>
-    
-    <textarea id="playerInput" placeholder="Nhập tên người chơi, mỗi dòng 1 người..."></textarea>
-
-    <div class="controls">
-      <button onclick="drawWheel()">Vẽ Vòng Quay</button>
-      <button onclick="spinWheel()">Quay!</button>
-      <button onclick="reset()">Reset</button>
-    </div>
-
-    <canvas id="wheel" width="500" height="500"></canvas>
-
-    <div class="result" id="result"></div>
+  <h1>🎯 Vòng quay may mắn 🎯</h1>
+  <div class="input-section">
+    <textarea id="namesInput" placeholder="Nhập tên mỗi người trên 1 dòng..."></textarea>
+    <input id="preselectedName" placeholder="(Tùy chọn) Tên người trúng định trước"/>
+    <button onclick="createWheel()">Tạo vòng quay</button>
+    <button onclick="spinWheel()">Quay!</button>
   </div>
+  <canvas id="wheel" width="500" height="500"></canvas>
+  <div id="result"></div>
 
   <script src="script.js"></script>
 </body>

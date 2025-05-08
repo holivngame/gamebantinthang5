@@ -1,106 +1,152 @@
-let canvas = document.getElementById("wheel");
-let ctx = canvas.getContext("2d");
-let names = [];
-let colors = [];
-let startAngle = 0;
-let spinning = false;
-let preselectedWinner = "";
+// Đường dẫn tới ảnh mà bạn đã tải lên
+const imageUrl = 'images/your-image.jpg';  // Thay 'your-image.jpg' bằng tên ảnh bạn muốn sử dụng
 
-function createWheel() {
-  const rawInput = document.getElementById("namesInput").value.trim();
-  names = rawInput.split("\n").map(name => name.trim()).filter(name => name !== "");
-  preselectedWinner = document.getElementById("preselectedName").value.trim();
+let pieces = [];
+let correctPositions = [];
+let shuffledPositions = [];
+let boardSize = 3; // 3x3 grid (9 pieces)
+let draggingPiece = null;  // Mảnh ghép đang được kéo
 
-  if (names.length < 2) {
-    alert("Cần ít nhất 2 người chơi.");
-    return;
-  }
-
-  colors = generateColors(names.length);
-  drawWheel();
-  document.getElementById("result").textContent = "";
+window.onload = function() {
+    createPuzzle(imageUrl);
 }
 
-function generateColors(num) {
-  const result = [];
-  const hueStep = 360 / num;
-  for (let i = 0; i < num; i++) {
-    result.push(`hsl(${i * hueStep}, 70%, 60%)`);
-  }
-  return result;
+function createPuzzle(imageUrl) {
+    // Tạo các mảnh ghép từ ảnh
+    const img = new Image();
+    img.src = imageUrl;
+
+    img.onload = function () {
+        // Xóa các mảnh cũ (nếu có)
+        document.getElementById('game-board').innerHTML = '';
+        
+        const pieceWidth = img.width / 3;
+        const pieceHeight = img.height / 3;
+
+        pieces = [];
+        correctPositions = [];
+        shuffledPositions = [];
+
+        // Chia ảnh thành 9 mảnh và lưu các mảnh vào mảng
+        for (let row = 0; row < boardSize; row++) {
+            for (let col = 0; col < boardSize; col++) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = pieceWidth;
+                canvas.height = pieceHeight;
+                ctx.drawImage(img, col * pieceWidth, row * pieceHeight, pieceWidth, pieceHeight, 0, 0, pieceWidth, pieceHeight);
+                pieces.push(canvas.toDataURL());
+
+                // Lưu vị trí đúng của từng mảnh
+                correctPositions.push({ row, col });
+
+                // Thêm mảnh vào game board
+                const pieceElement = document.createElement('div');
+                pieceElement.classList.add('piece');
+                pieceElement.style.backgroundImage = `url(${canvas.toDataURL()})`;
+                pieceElement.style.backgroundSize = `${img.width}px ${img.height}px`;
+                pieceElement.dataset.index = pieces.length - 1;
+                pieceElement.style.top = `${Math.random() * (boardSize * pieceHeight)}px`;
+                pieceElement.style.left = `${Math.random() * (boardSize * pieceWidth)}px`;
+
+                // Sự kiện di chuyển mảnh ghép
+                pieceElement.addEventListener('touchstart', handleDragStart);
+                pieceElement.addEventListener('mousedown', handleDragStart);
+
+                pieceElement.addEventListener('touchmove', handleDragMove);
+                pieceElement.addEventListener('mousemove', handleDragMove);
+
+                pieceElement.addEventListener('touchend', handleDragEnd);
+                pieceElement.addEventListener('mouseup', handleDragEnd);
+
+                document.getElementById('game-board').appendChild(pieceElement);
+            }
+        }
+
+        shufflePieces();  // Làm xáo trộn các mảnh
+
+        // Ẩn thông báo hoàn thành
+        document.getElementById('message').classList.add('hidden');
+    };
 }
 
-function drawWheel() {
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2;
-  const radius = Math.min(centerX, centerY);
-  const arc = 2 * Math.PI / names.length;
+function handleDragStart(e) {
+    e.preventDefault();
+    draggingPiece = e.target;
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  for (let i = 0; i < names.length; i++) {
-    const angle = startAngle + i * arc;
-    ctx.beginPath();
-    ctx.fillStyle = colors[i];
-    ctx.moveTo(centerX, centerY);
-    ctx.arc(centerX, centerY, radius, angle, angle + arc, false);
-    ctx.lineTo(centerX, centerY);
-    ctx.fill();
-
-    // Text
-    ctx.save();
-    ctx.translate(centerX, centerY);
-    ctx.rotate(angle + arc / 2);
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#000";
-    ctx.font = "16px sans-serif";
-    ctx.fillText(names[i], radius - 10, 5);
-    ctx.restore();
-  }
+    const touch = e.touches ? e.touches[0] : e;  // Sử dụng touch hoặc mouse event
+    draggingPiece.offsetX = touch.clientX - draggingPiece.getBoundingClientRect().left;
+    draggingPiece.offsetY = touch.clientY - draggingPiece.getBoundingClientRect().top;
 }
 
-function spinWheel() {
-  if (spinning || names.length < 2) return;
+function handleDragMove(e) {
+    e.preventDefault();
+    if (!draggingPiece) return;
 
-  let winnerIndex;
-  if (preselectedWinner) {
-    winnerIndex = names.indexOf(preselectedWinner);
-    if (winnerIndex === -1) {
-      alert("Tên người trúng không có trong danh sách.");
-      return;
+    const touch = e.touches ? e.touches[0] : e;  // Sử dụng touch hoặc mouse event
+    draggingPiece.style.left = `${touch.clientX - draggingPiece.offsetX}px`;
+    draggingPiece.style.top = `${touch.clientY - draggingPiece.offsetY}px`;
+}
+
+function handleDragEnd(e) {
+    e.preventDefault();
+    if (!draggingPiece) return;
+
+    const targetPos = getTargetPosition(draggingPiece);
+
+    // Kiểm tra xem mảnh ghép có nằm đúng vị trí không
+    if (isPieceInCorrectPosition(draggingPiece, targetPos)) {
+        placePieceInCorrectPosition(draggingPiece, targetPos);
     }
-  } else {
-    winnerIndex = Math.floor(Math.random() * names.length);
-  }
 
-  const arc = 2 * Math.PI / names.length;
-  const stopAngle = (3 * Math.PI / 2) - (winnerIndex * arc + arc / 2);
-  const totalRotation = (Math.PI * 10) + stopAngle;
-
-  let duration = 4000;
-  let start = null;
-  spinning = true;
-
-  function animate(timestamp) {
-    if (!start) start = timestamp;
-    const elapsed = timestamp - start;
-    const progress = Math.min(elapsed / duration, 1);
-    const eased = easeOutQuart(progress);
-
-    startAngle = eased * totalRotation;
-    drawWheel();
-
-    if (progress < 1) {
-      requestAnimationFrame(animate);
-    } else {
-      spinning = false;
-      document.getElementById("result").innerText = `🎉 Người trúng là: ${names[winnerIndex]} 🎉`;
-    }
-  }
-
-  requestAnimationFrame(animate);
+    draggingPiece = null;
+    checkCompletion();
 }
 
-function easeOutQuart(t) {
-  return 1 - Math.pow(1 - t, 4);
+function getTargetPosition(piece) {
+    const index = piece.dataset.index;
+    const correctPosition = correctPositions[index];
+    return correctPosition;
+}
+
+function isPieceInCorrectPosition(piece, targetPos) {
+    const pieceRect = piece.getBoundingClientRect();
+    const targetRect = document.getElementById('game-board').getBoundingClientRect();
+
+    // Kiểm tra nếu mảnh ghép gần đúng với vị trí
+    const threshold = 10;  // Giới hạn độ lệch cho phép
+    return (
+        Math.abs(pieceRect.left - targetRect.left - targetPos.col * pieceRect.width) < threshold &&
+        Math.abs(pieceRect.top - targetRect.top - targetPos.row * pieceRect.height) < threshold
+    );
+}
+
+function placePieceInCorrectPosition(piece, targetPos) {
+    const pieceRect = piece.getBoundingClientRect();
+    piece.style.left = `${targetPos.col * pieceRect.width}px`;
+    piece.style.top = `${targetPos.row * pieceRect.height}px`;
+    piece.classList.add('correct');  // Đánh dấu mảnh đã ghép đúng
+    piece.removeEventListener('touchstart', handleDragStart);
+    piece.removeEventListener('mousedown', handleDragStart);
+}
+
+function shufflePieces() {
+    shuffledPositions = [...Array(9).keys()].sort(() => Math.random() - 0.5);
+
+    const piecesDivs = document.querySelectorAll('#game-board div');
+    piecesDivs.forEach((div, index) => {
+        const randomIndex = shuffledPositions[index];
+        div.style.backgroundImage = `url(${pieces[randomIndex]})`;
+        div.dataset.index = randomIndex;
+    });
+}
+
+function checkCompletion() {
+    const allCorrect = Array.from(document.querySelectorAll('#game-board div')).every((div, index) => {
+        return div.classList.contains('correct');
+    });
+
+    if (allCorrect) {
+        document.getElementById('message').classList.remove('hidden');
+    }
 }

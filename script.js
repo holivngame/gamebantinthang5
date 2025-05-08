@@ -1,10 +1,8 @@
-// Đường dẫn tới ảnh mà bạn đã tải lên
-const imageUrl = 'images/IMG_1194.JPG';  // Thay 'your-image.jpg' bằng tên ảnh bạn muốn sử dụng
+const imageUrl = 'images/IMG_1194.JPG';  // Đảm bảo thay bằng đường dẫn đúng đến ảnh bạn đã tải lên
 
 let pieces = [];
 let correctPositions = [];
 let shuffledPositions = [];
-let boardSize = 3; // 3x3 grid (9 pieces)
 let draggingPiece = null;  // Mảnh ghép đang được kéo
 
 window.onload = function() {
@@ -12,7 +10,6 @@ window.onload = function() {
 }
 
 function createPuzzle(imageUrl) {
-    // Tạo các mảnh ghép từ ảnh
     const img = new Image();
     img.src = imageUrl;
 
@@ -28,8 +25,8 @@ function createPuzzle(imageUrl) {
         shuffledPositions = [];
 
         // Chia ảnh thành 9 mảnh và lưu các mảnh vào mảng
-        for (let row = 0; row < boardSize; row++) {
-            for (let col = 0; col < boardSize; col++) {
+        for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 3; col++) {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 canvas.width = pieceWidth;
@@ -46,10 +43,10 @@ function createPuzzle(imageUrl) {
                 pieceElement.style.backgroundImage = `url(${canvas.toDataURL()})`;
                 pieceElement.style.backgroundSize = `${img.width}px ${img.height}px`;
                 pieceElement.dataset.index = pieces.length - 1;
-                pieceElement.style.top = `${Math.random() * (boardSize * pieceHeight)}px`;
-                pieceElement.style.left = `${Math.random() * (boardSize * pieceWidth)}px`;
+                pieceElement.style.top = `${Math.random() * (pieceHeight * 2)}px`;
+                pieceElement.style.left = `${Math.random() * (pieceWidth * 2)}px`;
 
-                // Sự kiện di chuyển mảnh ghép
+                // Thêm sự kiện cho mảnh ghép
                 pieceElement.addEventListener('touchstart', handleDragStart);
                 pieceElement.addEventListener('mousedown', handleDragStart);
 

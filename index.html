@@ -1,26 +1,22 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>Vòng quay may mắn</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Ghép Hình</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>🎯 Vòng quay may mắn 🎯</h1>
-  <div class="input-section">
-    <textarea id="namesInput" placeholder="Nhập tên mỗi người trên 1 dòng..."></textarea>
-    <input id="preselectedName" placeholder="Tên người nhập"/>
-    <div>
-      <button onclick="createWheel()">Tạo vòng quay</button>
-      <button onclick="spinWheel()">Quay!</button>
-    </div>
-  </div>
-  <div class="wheel-container">
-    <canvas id="wheel" width="500" height="500"></canvas>
-    <div class="pointer">▲</div>
-  </div>
-  <div id="result"></div>
+    <h1>Chào mừng đến với trò chơi ghép hình!</h1>
 
-  <script src="script.js"></script>
+    <div id="game-board">
+        <!-- Các mảnh ghép sẽ được thêm vào đây -->
+    </div>
+
+    <div id="message" class="hidden">
+        <h2>Chúc mừng! Bạn đã hoàn thành!</h2>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>

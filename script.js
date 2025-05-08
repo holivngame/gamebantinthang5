@@ -1,5 +1,5 @@
 // Đường dẫn tới ảnh mà bạn đã tải lên
-const imageUrl = 'images/your-image.jpg';  // Thay 'your-image.jpg' bằng tên ảnh bạn muốn sử dụng
+const imageUrl = 'images/IMG_1194.JPG';  // Thay 'your-image.jpg' bằng tên ảnh bạn muốn sử dụng
 
 let pieces = [];
 let correctPositions = [];
